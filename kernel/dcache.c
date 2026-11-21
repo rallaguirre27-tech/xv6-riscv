@@ -90,3 +90,115 @@ dcache_hash_remove(struct dentry *de)
 
 
 
+
+
+
+static void
+dcache_lru_remove(struct dentry *entry)
+{
+  if (!entry)
+    return;
+
+  if (entry->lru_prev)
+    entry->lru_prev->lru_next = entry->lru_next;
+  else
+    dcache.lru_head = entry->lru_next;
+
+  if (entry->lru_next)
+    entry->lru_next->lru_prev = entry->lru_prev;
+  else
+    dcache.lru_tail = entry->lru_prev;
+
+  entry->lru_prev = 0;
+  entry->lru_next = 0;
+}
+
+static void
+dcache_lru_insert_tail(struct dentry *entry)
+{
+  if (!entry)
+    return;
+
+  entry->lru_prev = dcache.lru_tail;
+  entry->lru_next = 0;
+
+  if (dcache.lru_tail)
+    dcache.lru_tail->lru_next = entry;
+  else
+    dcache.lru_head = entry;
+
+  dcache.lru_tail = entry;
+}
+
+static void
+dcache_lru_touch(struct dentry *entry)
+{
+  if (!entry)
+    return;
+
+  if (dcache.lru_tail == entry)
+    return;
+
+  dcache_lru_remove(entry);
+  dcache_lru_insert_tail(entry);
+}
+
+static struct dentry *
+dcache_lru_evict(void)
+{
+  struct dentry *victim = dcache.lru_head;
+
+  if (!victim)
+    return 0;
+
+  dcache_hash_remove(victim);
+  dcache_lru_remove(victim);
+  victim->valid = 0;
+
+  return victim;
+}
+
+static struct dentry *
+dcache_alloc_slot(void)
+{
+  for (int i = 0; i < DENTRY_CACHE_SIZE; i++) {
+    if (!dcache.entries[i].valid) {
+      return &dcache.entries[i];
+    }
+  }
+  return dcache_lru_evict();
+}
+
+static struct dentry *
+dcache_put_entry(uint parent_dev, uint parent_inum, char *name,
+                 int result_type, uint target_inum, uint offset)
+{
+  struct dentry *de = dcache_hash_lookup(parent_dev, parent_inum, name);
+
+  if (de != 0) {
+    de->result_type = result_type;
+    de->target_inum = target_inum;
+    de->offset = offset;
+    de->valid = 1;
+    dcache_lru_touch(de);
+    return de;
+  }
+
+  de = dcache_alloc_slot();
+  if (!de)
+    return 0;
+
+  de->parent_dev = parent_dev;
+  de->parent_inum = parent_inum;
+  safestrcpy(de->name, name, DIRSIZ);
+  de->result_type = result_type;
+  de->target_inum = target_inum;
+  de->offset = offset;
+  de->valid = 1;
+
+  dcache_hash_insert(de);
+  dcache_lru_insert_tail(de);
+
+  return de;
+}
+
