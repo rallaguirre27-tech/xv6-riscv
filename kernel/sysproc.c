@@ -110,3 +110,86 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_hello(void)
+{
+  printk("Syscall ejecutada por el proceso %d\n", myproc()->pid);
+  return 0;
+}
+
+uint64
+sys_sumados(void)
+{
+  int a, b;
+
+  argint(0, &a);
+  argint(1, &b);
+
+  int suma = a + b;
+  printk("Kernel: %d + %d = %d\n", a, b, suma);
+
+  return suma;
+}
+
+uint64 sys_setpriority(void){
+  int pid, pr;
+  argint(0, &pid);
+  argint(1, &pr);
+  return setpriority(pid, pr);
+}
+
+uint64
+sys_sem_alloc(void)
+{
+  char name[16];
+  int initial;
+  if(argstr(0, name, sizeof(name)) < 0)
+    return -1;
+  argint(1, &initial);
+  return sem_alloc(name, initial);
+}
+
+uint64
+sys_sem_free(void)
+{
+  int id;
+  argint(0, &id);
+  return sem_free(id);
+}
+
+uint64
+sys_sem_wait(void)
+{
+  int id;
+  argint(0, &id);
+  return sem_wait(id);
+}
+
+uint64
+sys_sem_signal(void)
+{
+  int id;
+  argint(0, &id);
+  return sem_signal(id);
+}
+
+uint64
+sys_pc_reset(void)
+{
+  return pc_reset();
+}
+
+uint64
+sys_pc_put(void)
+{
+  int item;
+  argint(0, &item);
+  return pc_put(item);
+}
+
+uint64
+sys_pc_get(void)
+{
+  return pc_get();
+}

@@ -21,3 +21,13 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_sync   22
+#define SYS_hello 23
+#define SYS_sumados 24
+#define SYS_setpriority 25
+#define SYS_sem_alloc  40
+#define SYS_sem_free   41
+#define SYS_sem_wait   42
+#define SYS_sem_signal 43
+#define SYS_pc_reset   44
+#define SYS_pc_put     45
+#define SYS_pc_get     46

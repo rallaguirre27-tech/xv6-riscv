@@ -125,9 +125,13 @@ found:
   p->pid = allocpid();
   p->state = USED;
 
+  // Añadir inicialización por defecto:
+  p->priority = 5; // prioridad predeterminada
+
   // Allocate a trapframe page.
   if ((p->trapframe = (struct trapframe *)kalloc()) == 0) {
     freeproc(p);
+
     release(&p->lock);
     return 0;
   }
@@ -274,6 +278,8 @@ kfork(void)
     return -1;
   }
   np->sz = p->sz;
+
+  np->priority = p->priority;
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
@@ -424,47 +430,46 @@ kwait(uint64 addr)
 //  - choose a process to run.
 //  - swtch to start running that process.
 //  - eventually that process transfers control
-//    via swtch back to the scheduler.
+//    via swtch back to the scheduler
+
 void
 scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
-
+  
   c->proc = 0;
-  for (;;) {
-    // The most recent process to run may have had interrupts
-    // turned off; enable them to avoid a deadlock if all
-    // processes are waiting. Then turn them back off
-    // to avoid a possible race between an interrupt
-    // and wfi.
+  for(;;){
+    // Avoid deadlock by ensuring interrupts are enabled.
     intr_on();
-    intr_off();
 
-    int found = 0;
-    for (p = proc; p < &proc[NPROC]; p++) {
+    struct proc *best = 0;
+    
+    // 1. Buscar el proceso RUNNABLE con mayor prioridad (menor valor numérico)
+    for(p = proc; p < &proc[NPROC]; p++){
       acquire(&p->lock);
-      if (p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        c->proc = p;
-        swtch(&c->context, &p->context);
-
-        // Don't re-enable interrupts on release.
-        mycpu()->intena = 0;
-
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-        found = 1;
+      if(p->state == RUNNABLE){
+        if(best == 0 || p->priority < best->priority){
+          if(best != 0){
+            release(&best->lock);
+          }
+          best = p;
+          continue; // Mantenemos el bloqueo de best
+        }
       }
       release(&p->lock);
     }
-    if (found == 0) {
-      // nothing to run; stop running on this core until an interrupt.
-      asm volatile("wfi");
+
+    // 2. Si encontramos un proceso candidato, lo ejecutamos
+    if(best != 0){
+      best->state = RUNNING;
+      c->proc = best;
+      swtch(&c->context, &best->context);
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+      release(&best->lock);
     }
   }
 }
@@ -700,4 +705,15 @@ procdump(void)
     printk("%d %s %s", p->pid, state, p->name);
     printk("\n");
   }
+}
+
+
+int setpriority(int pid, int pr){
+  struct proc *p = myproc();
+  if (pr < 1 || pr > 10 || pid != p->pid)
+    return -1;
+  acquire(&p->lock);
+  p->priority = pr;
+  release(&p->lock);
+  return 0;
 }
