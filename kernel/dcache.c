@@ -202,3 +202,99 @@ dcache_put_entry(uint parent_dev, uint parent_inum, char *name,
   return de;
 }
 
+
+
+
+
+
+void
+dcacheinit(void)
+{
+  initlock(&dcache.lock, "dcache");
+
+  dcache.lru_head = 0;
+  dcache.lru_tail = 0;
+
+  dcache.hits = 0;
+  dcache.misses = 0;
+
+  for (int i = 0; i < DENTRY_HASH_SIZE; i++) {
+    dcache.hash[i] = 0;
+  }
+
+  for (int i = 0; i < DENTRY_CACHE_SIZE; i++) {
+    dcache.entries[i].valid = 0;
+    dcache.entries[i].hash_next = 0;
+    dcache.entries[i].lru_prev = 0;
+    dcache.entries[i].lru_next = 0;
+  }
+}
+
+
+
+
+
+int
+dcache_lookup(uint dev, uint parent_inum, char *name,
+              int *result_type, uint *target_inum, uint *offset)
+{
+  struct dentry *de;
+
+  if (!name)
+    return DCACHE_MISS;
+
+  acquire(&dcache.lock);
+  de = dcache_hash_lookup(dev, parent_inum, name);
+  if (de != 0) {
+    if (result_type)
+      *result_type = de->result_type;
+    if (target_inum)
+      *target_inum = de->target_inum;
+    if (offset)
+      *offset = de->offset;
+    dcache_lru_touch(de);
+    dcache.hits++;
+    release(&dcache.lock);
+    return DCACHE_HIT;
+  }
+
+  dcache.misses++;
+  release(&dcache.lock);
+  return DCACHE_MISS;
+}
+
+
+
+
+void
+dcache_insert(uint dev, uint parent_inum, char *name,
+              int result_type, uint target_inum, uint offset)
+{
+  if (!name)
+    return;
+
+  acquire(&dcache.lock);
+  dcache_put_entry(dev, parent_inum, name, result_type, target_inum, offset);
+  release(&dcache.lock);
+}
+
+
+
+
+void
+dcache_remove(uint dev, uint parent_inum, char *name)
+{
+  struct dentry *de;
+
+  if (!name)
+    return;
+
+  acquire(&dcache.lock);
+  de = dcache_hash_lookup(dev, parent_inum, name);
+  if (de != 0) {
+    dcache_hash_remove(de);
+    dcache_lru_remove(de);
+    de->valid = 0;
+  }
+  release(&dcache.lock);
+}

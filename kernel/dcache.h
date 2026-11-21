@@ -49,4 +49,41 @@ struct dcache {
   uint misses;
 };
 
+
+
+
+
+void dcacheinit(void);
+
+int dcache_lookup(
+    uint dev,
+    uint parent_inum,
+    char *name,
+    int *result_type,
+    uint *target_inum,
+    uint *offset
+);
+
+void dcache_insert(
+    uint dev,
+    uint parent_inum,
+    char *name,
+    int result_type,
+    uint target_inum,
+    uint offset
+);
+
+void dcache_remove(
+    uint dev,
+    uint parent_inum,
+    char *name
+);
+
+
+
+
+
+
+
+
 #endif
