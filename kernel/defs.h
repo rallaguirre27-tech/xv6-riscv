@@ -201,3 +201,10 @@ int  pc_reset(void);
 int  pc_put(int);
 int  pc_get(void);
 
+
+
+// dcache.c
+void            dcacheinit(void);
+int             dcache_lookup(uint, uint, char*, int*, uint*, uint*);
+void            dcache_insert(uint, uint, char*, int, uint, uint);
+void            dcache_remove(uint, uint, char*);

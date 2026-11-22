@@ -132,7 +132,9 @@ sys_sumados(void)
   return suma;
 }
 
-uint64 sys_setpriority(void){
+uint64
+sys_setpriority(void)
+{
   int pid, pr;
   argint(0, &pid);
   argint(1, &pr);
@@ -144,7 +146,7 @@ sys_sem_alloc(void)
 {
   char name[16];
   int initial;
-  if(argstr(0, name, sizeof(name)) < 0)
+  if (argstr(0, name, sizeof(name)) < 0)
     return -1;
   argint(1, &initial);
   return sem_alloc(name, initial);

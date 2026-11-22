@@ -2,9 +2,11 @@
 #include "kernel/stat.h"
 #include "user/user.h"
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[])
+{
   int pid1, pid2;
-  
+
   printf("Iniciando prueba de planificador por prioridades...\n");
 
   pid1 = fork();

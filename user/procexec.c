@@ -1,6 +1,8 @@
 #include "kernel/types.h"
 #include "user/user.h"
-int main(void) {
+int
+main(void)
+{
   int pid = fork();
   if (pid < 0) {
     printf("Error: fork()\n");

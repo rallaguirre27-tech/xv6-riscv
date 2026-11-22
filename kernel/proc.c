@@ -437,20 +437,20 @@ scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
-  
+
   c->proc = 0;
-  for(;;){
+  for (;;) {
     // Avoid deadlock by ensuring interrupts are enabled.
     intr_on();
 
     struct proc *best = 0;
-    
+
     // 1. Buscar el proceso RUNNABLE con mayor prioridad (menor valor numérico)
-    for(p = proc; p < &proc[NPROC]; p++){
+    for (p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
-      if(p->state == RUNNABLE){
-        if(best == 0 || p->priority < best->priority){
-          if(best != 0){
+      if (p->state == RUNNABLE) {
+        if (best == 0 || p->priority < best->priority) {
+          if (best != 0) {
             release(&best->lock);
           }
           best = p;
@@ -461,7 +461,7 @@ scheduler(void)
     }
 
     // 2. Si encontramos un proceso candidato, lo ejecutamos
-    if(best != 0){
+    if (best != 0) {
       best->state = RUNNING;
       c->proc = best;
       swtch(&c->context, &best->context);
@@ -707,8 +707,9 @@ procdump(void)
   }
 }
 
-
-int setpriority(int pid, int pr){
+int
+setpriority(int pid, int pr)
+{
   struct proc *p = myproc();
   if (pr < 1 || pr > 10 || pid != p->pid)
     return -1;

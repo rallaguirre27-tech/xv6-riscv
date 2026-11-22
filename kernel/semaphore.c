@@ -12,7 +12,7 @@ static struct semaphore sems[MAX_SEMAPHORES];
 void
 sem_init_all(void)
 {
-  for(int i = 0; i < MAX_SEMAPHORES; i++) {
+  for (int i = 0; i < MAX_SEMAPHORES; i++) {
     sems[i].used = 0;
     sems[i].value = 0;
     sems[i].waiters = 0;
@@ -23,13 +23,13 @@ sem_init_all(void)
 int
 sem_alloc(const char *name, int initial)
 {
-  if(initial < 0)
+  if (initial < 0)
     return -1;
 
-  for(int i = 0; i < MAX_SEMAPHORES; i++) {
+  for (int i = 0; i < MAX_SEMAPHORES; i++) {
     struct semaphore *s = &sems[i];
     acquire(&s->lock);
-    if(!s->used) {
+    if (!s->used) {
       s->used = 1;
       s->value = initial;
       s->waiters = 0;
@@ -45,12 +45,12 @@ sem_alloc(const char *name, int initial)
 int
 sem_free(int id)
 {
-  if(id < 0 || id >= MAX_SEMAPHORES)
+  if (id < 0 || id >= MAX_SEMAPHORES)
     return -1;
 
   struct semaphore *s = &sems[id];
   acquire(&s->lock);
-  if(!s->used || s->waiters > 0) {
+  if (!s->used || s->waiters > 0) {
     release(&s->lock);
     return -1;
   }
@@ -64,17 +64,17 @@ sem_free(int id)
 int
 sem_wait(int id)
 {
-  if(id < 0 || id >= MAX_SEMAPHORES)
+  if (id < 0 || id >= MAX_SEMAPHORES)
     return -1;
 
   struct semaphore *s = &sems[id];
   acquire(&s->lock);
-  if(!s->used) {
+  if (!s->used) {
     release(&s->lock);
     return -1;
   }
-  while(s->value == 0) {
-    if(killed(myproc())) {
+  while (s->value == 0) {
+    if (killed(myproc())) {
       release(&s->lock);
       return -1;
     }
@@ -85,7 +85,7 @@ sem_wait(int id)
     acquire(&s->lock);
     s->waiters--;
   }
-  if(killed(myproc())) {
+  if (killed(myproc())) {
     release(&s->lock);
     return -1;
   }
@@ -97,12 +97,12 @@ sem_wait(int id)
 int
 sem_signal(int id)
 {
-  if(id < 0 || id >= MAX_SEMAPHORES)
+  if (id < 0 || id >= MAX_SEMAPHORES)
     return -1;
 
   struct semaphore *s = &sems[id];
   acquire(&s->lock);
-  if(!s->used || s->value >= 2147483647) {
+  if (!s->used || s->value >= 2147483647) {
     release(&s->lock);
     return -1;
   }
@@ -127,7 +127,7 @@ pc_reset(void)
 {
   acquire(&pc_lock);
   in = out = 0;
-  for(int i = 0; i < BUFSIZE; i++)
+  for (int i = 0; i < BUFSIZE; i++)
     slots[i] = -1;
   release(&pc_lock);
   return 0;

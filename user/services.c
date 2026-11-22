@@ -7,15 +7,15 @@ struct service {
   int priority;
 };
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[])
+{
   // Definición de los 5 servicios del caso de aplicación
-  struct service srvs[5] = {
-    {"monitor", 2},
-    {"webserver", 3},
-    {"dbupdate", 5},
-    {"analytics", 7},
-    {"backup", 8}
-  };
+  struct service srvs[5] = {{"monitor", 2},
+                            {"webserver", 3},
+                            {"dbupdate", 5},
+                            {"analytics", 7},
+                            {"backup", 8}};
 
   printf("=== INICIANDO SIMULACION DE SERVICIOS (Fase 7) ===\n");
 
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     if (pid == 0) {
       // Código del Proceso Hijo
       setpriority(getpid(), srvs[i].priority);
-      printf("[HIJO] Servicio: %s | PID: %d | Prioridad: %d iniciandose...\n", 
+      printf("[HIJO] Servicio: %s | PID: %d | Prioridad: %d iniciandose...\n",
              srvs[i].name, getpid(), srvs[i].priority);
 
       // Simulación de trabajo de CPU intensivo
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
         trabajo += j;
       }
 
-      printf("[FIN] Servicio: %s (PID: %d) termino su trabajo de CPU.\n", 
+      printf("[FIN] Servicio: %s (PID: %d) termino su trabajo de CPU.\n",
              srvs[i].name, getpid());
       exit(0);
     }
@@ -52,4 +52,3 @@ int main(int argc, char *argv[]) {
   printf("=== TODOS LOS SERVICIOS HAN FINALIZADO EXITOSAMENTE ===\n");
   exit(0);
 }
-
