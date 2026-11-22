@@ -31,6 +31,11 @@ main()
     sem_init_all();
     pc_init();
     userinit();         // first user process
+    dcacheinit();
+
+#ifdef DCACHE_RUN_TESTS
+  dcache_test();
+#endif
 
     __atomic_store_n(&started, 1, __ATOMIC_RELEASE);
   } else {
@@ -45,3 +50,4 @@ main()
 
   scheduler();
 }
+

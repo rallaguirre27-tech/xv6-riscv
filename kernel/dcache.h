@@ -3,8 +3,6 @@
 
 #ifndef __ASSEMBLER__
 #include "types.h"
-#include "spinlock.h"
-#include "fs.h"
 #endif
 
 #define DENTRY_CACHE_SIZE 64

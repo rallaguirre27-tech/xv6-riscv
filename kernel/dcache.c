@@ -298,3 +298,8 @@ dcache_remove(uint dev, uint parent_inum, char *name)
   }
   release(&dcache.lock);
 }
+
+
+
+
+
