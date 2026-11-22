@@ -114,9 +114,6 @@ extern uint64 sys_pc_reset(void);
 extern uint64 sys_pc_put(void);
 extern uint64 sys_pc_get(void);
 
-
-
-
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
 static uint64 (*syscalls[])(void) = {
@@ -153,7 +150,7 @@ static uint64 (*syscalls[])(void) = {
   [SYS_pc_reset] sys_pc_reset,
   [SYS_pc_put]   sys_pc_put,
   [SYS_pc_get]   sys_pc_get,
-// clang-format on
+  // clang-format on
 };
 
 void

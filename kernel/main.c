@@ -30,11 +30,11 @@ main()
     virtio_disk_init(); // emulated hard disk
     sem_init_all();
     pc_init();
-    userinit();         // first user process
+    userinit(); // first user process
     dcacheinit();
 
 #ifdef DCACHE_RUN_TESTS
-  dcache_test();
+    dcache_test();
 #endif
 
     __atomic_store_n(&started, 1, __ATOMIC_RELEASE);
@@ -50,4 +50,3 @@ main()
 
   scheduler();
 }
-

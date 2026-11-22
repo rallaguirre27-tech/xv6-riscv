@@ -26,7 +26,8 @@ dcache_hash(uint dev, uint inum, char *name)
 }
 
 static int
-dcache_key_match(struct dentry *de, uint parent_dev, uint parent_inum, char *name)
+dcache_key_match(struct dentry *de, uint parent_dev, uint parent_inum,
+                 char *name)
 {
   if (!de || !de->valid)
     return 0;
@@ -50,8 +51,6 @@ dcache_hash_lookup(uint parent_dev, uint parent_inum, char *name)
 
   return 0;
 }
-
-
 
 static void
 dcache_hash_insert(struct dentry *de)
@@ -87,11 +86,6 @@ dcache_hash_remove(struct dentry *de)
     curr = &(*curr)->hash_next;
   }
 }
-
-
-
-
-
 
 static void
 dcache_lru_remove(struct dentry *entry)
@@ -170,8 +164,8 @@ dcache_alloc_slot(void)
 }
 
 static struct dentry *
-dcache_put_entry(uint parent_dev, uint parent_inum, char *name,
-                 int result_type, uint target_inum, uint offset)
+dcache_put_entry(uint parent_dev, uint parent_inum, char *name, int result_type,
+                 uint target_inum, uint offset)
 {
   struct dentry *de = dcache_hash_lookup(parent_dev, parent_inum, name);
 
@@ -202,11 +196,6 @@ dcache_put_entry(uint parent_dev, uint parent_inum, char *name,
   return de;
 }
 
-
-
-
-
-
 void
 dcacheinit(void)
 {
@@ -230,13 +219,9 @@ dcacheinit(void)
   }
 }
 
-
-
-
-
 int
-dcache_lookup(uint dev, uint parent_inum, char *name,
-              int *result_type, uint *target_inum, uint *offset)
+dcache_lookup(uint dev, uint parent_inum, char *name, int *result_type,
+              uint *target_inum, uint *offset)
 {
   struct dentry *de;
 
@@ -263,12 +248,9 @@ dcache_lookup(uint dev, uint parent_inum, char *name,
   return DCACHE_MISS;
 }
 
-
-
-
 void
-dcache_insert(uint dev, uint parent_inum, char *name,
-              int result_type, uint target_inum, uint offset)
+dcache_insert(uint dev, uint parent_inum, char *name, int result_type,
+              uint target_inum, uint offset)
 {
   if (!name)
     return;
@@ -277,9 +259,6 @@ dcache_insert(uint dev, uint parent_inum, char *name,
   dcache_put_entry(dev, parent_inum, name, result_type, target_inum, offset);
   release(&dcache.lock);
 }
-
-
-
 
 void
 dcache_remove(uint dev, uint parent_inum, char *name)
@@ -298,8 +277,3 @@ dcache_remove(uint dev, uint parent_inum, char *name)
   }
   release(&dcache.lock);
 }
-
-
-
-
-

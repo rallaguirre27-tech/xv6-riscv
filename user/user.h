@@ -28,15 +28,13 @@ int sync(void);
 int hello(void);
 int sumados(int, int);
 int setpriority(int pid, int pr);
-int sem_alloc(const char*, int);
+int sem_alloc(const char *, int);
 int sem_free(int);
 int sem_wait(int);
 int sem_signal(int);
 int pc_reset(void);
 int pc_put(int);
 int pc_get(void);
-
-
 
 // ulib.c
 int stat(const char *, struct stat *);
