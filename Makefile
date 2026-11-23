@@ -164,7 +164,7 @@ UPROGS=\
 	$U/_services\
 	$U/_prod_cons\
 	$U/_dcachetest\
-	$U/_dcachebench  
+	$U/_dcachebench
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
