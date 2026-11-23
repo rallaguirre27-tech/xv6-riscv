@@ -100,12 +100,22 @@ int main(int argc, char *argv[])
   printf("busqueda_negativa,%d,%d,%d,%d\n", n, iters, np, run(np, 1, n, iters));
   printf("crear_borrar,%d,%d,%d,%d\n",      n, iters / 10, np, run(np, 2, n, iters));
 
+
 #ifdef HAVE_DCACHE_STATS
   struct dcache_stat s;
-  dcachestat(&s);
-  printf("stats: hits=%d misses=%d neg_hits=%d inval=%d\n",
-         (int)s.hits, (int)s.misses, (int)s.neg_hits, (int)s.invalidations);
+
+  if (dcachestat(&s) == 0) {
+    printf("HITS,MISSES,POS_HITS,NEG_HITS,ENTRIES_SCANNED,INVALIDATIONS,EVICTIONS\n");
+
+    printf("%d,%d,%d,%d,%d,%d,%d\n",
+           (int)s.hits,
+           (int)s.misses,
+           (int)s.pos_hits,
+           (int)s.neg_hits,
+           (int)s.entries_scanned,
+           (int)s.invalidations,
+           (int)s.evictions);
+  } else {
+    printf("Error al obtener estadisticas\n");
+  }
 #endif
-  cleanup(n);
-  exit(0);
-}
