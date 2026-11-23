@@ -115,7 +115,7 @@ extern uint64 sys_sem_signal(void);
 extern uint64 sys_pc_reset(void);
 extern uint64 sys_pc_put(void);
 extern uint64 sys_pc_get(void);
-
+extern uint64 sys_dcachestat(void);
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
 static uint64 (*syscalls[])(void) = {
@@ -141,17 +141,18 @@ static uint64 (*syscalls[])(void) = {
   [SYS_link]    = sys_link,
   [SYS_mkdir]   = sys_mkdir,
   [SYS_close]   = sys_close,
-  [SYS_sync]    = sys_sync,
-  [SYS_hello]   sys_hello,
-  [SYS_sumados] sys_sumados,
-  [SYS_setpriority] sys_setpriority,
-  [SYS_sem_alloc]  sys_sem_alloc,
-  [SYS_sem_free]   sys_sem_free,
-  [SYS_sem_wait]   sys_sem_wait,
-  [SYS_sem_signal] sys_sem_signal,
-  [SYS_pc_reset] sys_pc_reset,
-  [SYS_pc_put]   sys_pc_put,
-  [SYS_pc_get]   sys_pc_get,
+  [SYS_sync]        = sys_sync,
+  [SYS_hello]       = sys_hello,
+  [SYS_sumados]     = sys_sumados,
+  [SYS_setpriority] = sys_setpriority,
+  [SYS_sem_alloc]   = sys_sem_alloc,
+  [SYS_sem_free]    = sys_sem_free,
+  [SYS_sem_wait]    = sys_sem_wait,
+  [SYS_sem_signal]  = sys_sem_signal,
+  [SYS_pc_reset]    = sys_pc_reset,
+  [SYS_pc_put]      = sys_pc_put,
+  [SYS_pc_get]      = sys_pc_get,
+  [SYS_dcachestat]  = sys_dcachestat,
   // clang-format on
 };
 
