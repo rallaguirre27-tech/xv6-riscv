@@ -286,9 +286,12 @@ dcache_remove(uint dev, uint parent_inum, char *name)
   acquire(&dcache.lock);
   de = dcache_hash_lookup(dev, parent_inum, name);
   if (de != 0) {
-    dcache_hash_remove(de);
-    dcache_lru_remove(de);
-    de->valid = 0;
-  }
+  dcache_hash_remove(de);
+  dcache_lru_remove(de);
+  de->valid = 0;
+
+  // Registrar la entrada invalidada.
+  dcache.invalidations++;
+}
   release(&dcache.lock);
 }
