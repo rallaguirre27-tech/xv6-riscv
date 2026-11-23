@@ -1,7 +1,7 @@
 #define SBRK_ERROR ((char *)-1)
 
 struct stat;
-
+struct dcache_stat;
 // system calls
 int fork(void);
 int exit(int) __attribute__((noreturn));
@@ -35,7 +35,7 @@ int sem_signal(int);
 int pc_reset(void);
 int pc_put(int);
 int pc_get(void);
-
+int dcachestat(struct dcache_stat *stats);
 // ulib.c
 int stat(const char *, struct stat *);
 char *strcpy(char *, const char *);

@@ -31,3 +31,4 @@
 #define SYS_pc_reset    44
 #define SYS_pc_put      45
 #define SYS_pc_get      46
+#define SYS_dcachestat  47
