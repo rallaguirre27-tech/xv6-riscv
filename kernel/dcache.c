@@ -148,6 +148,10 @@ dcache_lru_evict(void)
 
   dcache_hash_remove(victim);
   dcache_lru_remove(victim);
+
+  // Registrar una entrada expulsada por LRU.
+  dcache.evictions++;
+
   victim->valid = 0;
 
   return victim;
