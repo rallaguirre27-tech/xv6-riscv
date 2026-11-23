@@ -53,3 +53,4 @@ entry("sem_signal");
 entry("pc_reset");
 entry("pc_put");
 entry("pc_get");
+entry("dcachestat");
