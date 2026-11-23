@@ -269,7 +269,6 @@ dcache_lookup(uint dev, uint parent_inum, char *name, int *result_type,
   release(&dcache.lock);
   return DCACHE_MISS;
 }
-void
 dcache_insert(uint dev, uint parent_inum, char *name, int result_type,
               uint target_inum, uint offset)
 {
