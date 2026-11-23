@@ -587,6 +587,7 @@ namecmp(const char *s, const char *t)
   return strncmp(s, t, DIRSIZ);
 }
 
+
 // Look for a directory entry in a directory.
 // If found, set *poff to byte offset of entry.
 struct inode *
@@ -599,15 +600,21 @@ dirlookup(struct inode *dp, char *name, uint *poff)
     panic("dirlookup not DIR");
 
   for (off = 0; off < dp->size; off += sizeof(de)) {
+
     if (readi(dp, 0, (uint64)&de, off, sizeof(de)) != sizeof(de))
       panic("dirlookup read");
-      dcache_count_entry_scanned();
+
+    // Registrar cada entrada examinada.
+    dcache_count_entry_scanned();
+
     if (de.inum == 0)
       continue;
+
     if (namecmp(name, de.name) == 0) {
       // entry matches path element
       if (poff)
         *poff = off;
+
       inum = de.inum;
       return iget(dp->dev, inum);
     }
@@ -615,6 +622,7 @@ dirlookup(struct inode *dp, char *name, uint *poff)
 
   return 0;
 }
+
 
 // Write a new directory entry (name, inum) into the directory dp.
 // Returns 0 on success, -1 on failure (e.g. out of disk blocks).
