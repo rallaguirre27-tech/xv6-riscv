@@ -162,7 +162,9 @@ UPROGS=\
 	$U/_comandos5\
 	$U/_testpriority\
 	$U/_services\
-	$U/_prod_cons  
+	$U/_prod_cons\
+	$U/_dcachetest\
+	$U/_dcachebench  
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
