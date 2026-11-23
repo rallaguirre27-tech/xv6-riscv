@@ -239,30 +239,36 @@ dcache_lookup(uint dev, uint parent_inum, char *name, int *result_type,
     return DCACHE_MISS;
 
   acquire(&dcache.lock);
+
   de = dcache_hash_lookup(dev, parent_inum, name);
+
   if (de != 0) {
     if (result_type)
       *result_type = de->result_type;
+
     if (target_inum)
       *target_inum = de->target_inum;
+
     if (offset)
       *offset = de->offset;
+
     dcache_lru_touch(de);
+    dcache.hits++;
 
-dcache.hits++;
+    if (de->result_type == DENTRY_POSITIVE)
+      dcache.pos_hits++;
+    else if (de->result_type == DENTRY_NEGATIVE)
+      dcache.neg_hits++;
 
-if (de->result_type == DENTRY_POSITIVE)
-  dcache.pos_hits++;
-else if (de->result_type == DENTRY_NEGATIVE)
-  dcache.neg_hits++;
+    release(&dcache.lock);
+    return DCACHE_HIT;
+  }
 
-release(&dcache.lock);
-return DCACHE_HIT;
   dcache.misses++;
+
   release(&dcache.lock);
   return DCACHE_MISS;
 }
-
 void
 dcache_insert(uint dev, uint parent_inum, char *name, int result_type,
               uint target_inum, uint offset)
