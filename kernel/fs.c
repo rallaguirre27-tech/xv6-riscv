@@ -642,7 +642,10 @@ dirlink(struct inode *dp, char *name, uint inum)
   de.inum = inum;
   if (writei(dp, 0, (uint64)&de, off, sizeof(de)) != sizeof(de))
     return -1;
+
+  // Invalidar cualquier entrada anterior del nombre.
   dcache_remove(dp->dev, dp->inum, name);
+
   return 0;
 }
 
@@ -705,7 +708,12 @@ namex(char *path, int nameiparent, char *name)
   while ((path = skipelem(path, name)) != 0) {
     ilock(ip);
 
-    if (ip->type != T_DIR || ip->nlink == 0) {
+    if (ip->type != T_DIR) {
+      iunlockput(ip);
+      return 0;
+    }
+
+    if (ip->nlink == 0) {
       iunlockput(ip);
       return 0;
     }
@@ -715,23 +723,40 @@ namex(char *path, int nameiparent, char *name)
       return ip;
     }
 
+    // Primero consultar el Dentry Cache.
     if (dcache_lookup(ip->dev, ip->inum, name,
-                      &result_type, &target_inum, &offset)
-        == DCACHE_HIT && result_type == DENTRY_POSITIVE) {
-      next = iget(ip->dev, target_inum);
-    } else {
-      next = dirlookup(ip, name, &offset);
+                      &result_type, &target_inum, &offset) == DCACHE_HIT) {
 
-      if (next != 0) {
-        dcache_insert(ip->dev, ip->inum, name,
-                      DENTRY_POSITIVE, next->inum, offset);
+      // Entrada negativa: el nombre no existe.
+      if (result_type == DENTRY_NEGATIVE) {
+        iunlockput(ip);
+        return 0;
+      }
+
+      // Entrada positiva: recuperar el inodo.
+      if (result_type == DENTRY_POSITIVE) {
+        next = iget(ip->dev, target_inum);
+        iunlockput(ip);
+        ip = next;
+        continue;
       }
     }
 
+    // Si no está en caché, consultar el directorio.
+    next = dirlookup(ip, name, &offset);
+
     if (next == 0) {
+      // Guardar resultado negativo.
+      dcache_insert(ip->dev, ip->inum, name,
+                    DENTRY_NEGATIVE, 0, 0);
+
       iunlockput(ip);
       return 0;
     }
+
+    // Guardar resultado positivo.
+    dcache_insert(ip->dev, ip->inum, name,
+                  DENTRY_POSITIVE, next->inum, offset);
 
     iunlockput(ip);
     ip = next;

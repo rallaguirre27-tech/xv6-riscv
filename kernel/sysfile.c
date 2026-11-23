@@ -237,8 +237,8 @@ sys_unlink(void)
   if (writei(dp, 0, (uint64)&de, off, sizeof(de)) != sizeof(de))
     panic("unlink: writei");
 
+  // Invalidar la entrada del Dentry Cache.
   dcache_remove(dp->dev, dp->inum, name);
-
   if (ip->type == T_DIR) {
     dp->nlink--;
     iupdate(dp);
