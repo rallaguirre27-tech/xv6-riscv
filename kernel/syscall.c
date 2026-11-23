@@ -1,5 +1,4 @@
-#include "vm.h"
-#include "dcache.h"
+
 #include "types.h"
 #include "param.h"
 #include "memlayout.h"
@@ -14,22 +13,27 @@ int
 fetchaddr(uint64 addr, uint64 *ip)
 {
   struct proc *p = myproc();
+
   if (addr >= p->sz ||
-      addr + sizeof(uint64) > p->sz) // both tests needed, in case of overflow
+      addr + sizeof(uint64) > p->sz)
     return -1;
-  if (copyin(p->pagetable, p->sz, (char *)ip, addr, sizeof(*ip)) != 0)
+
+  if (copyin(p->pagetable, p->sz, (char *)ip,
+             addr, sizeof(*ip)) != 0)
     return -1;
+
   return 0;
 }
 
 // Fetch the nul-terminated string at addr from the current process.
-// Returns length of string, not including nul, or -1 for error.
 int
 fetchstr(uint64 addr, char *buf, int max)
 {
   struct proc *p = myproc();
+
   if (copyinstr(p->pagetable, p->sz, buf, addr, max) < 0)
     return -1;
+
   return strlen(buf);
 }
 
@@ -37,6 +41,7 @@ static uint64
 argraw(int n)
 {
   struct proc *p = myproc();
+
   switch (n) {
   case 0:
     return p->trapframe->a0;
@@ -51,6 +56,7 @@ argraw(int n)
   case 5:
     return p->trapframe->a5;
   }
+
   panic("argraw");
   return -1;
 }
@@ -63,21 +69,18 @@ argint(int n, int *ip)
 }
 
 // Retrieve an argument as a pointer.
-// Doesn't check for legality, since
-// copyin/copyout will do that.
 void
 argaddr(int n, uint64 *ip)
 {
   *ip = argraw(n);
 }
 
-// Fetch the nth word-sized system call argument as a null-terminated string.
-// Copies into buf, at most max.
-// Returns string length if OK (not including nul), -1 if error.
+// Fetch the nth word-sized system call argument as a string.
 int
 argstr(int n, char *buf, int max)
 {
   uint64 addr;
+
   argaddr(n, &addr);
   return fetchstr(addr, buf, max);
 }
@@ -115,32 +118,34 @@ extern uint64 sys_sem_signal(void);
 extern uint64 sys_pc_reset(void);
 extern uint64 sys_pc_put(void);
 extern uint64 sys_pc_get(void);
+
+// Nueva llamada al sistema para consultar estadisticas Dentry Cache.
 extern uint64 sys_dcachestat(void);
-// An array mapping syscall numbers from syscall.h
-// to the function that handles the system call.
+
+// An array mapping syscall numbers to their functions.
 static uint64 (*syscalls[])(void) = {
   // clang-format off
-  [SYS_fork]    = sys_fork,
-  [SYS_exit]    = sys_exit,
-  [SYS_wait]    = sys_wait,
-  [SYS_pipe]    = sys_pipe,
-  [SYS_read]    = sys_read,
-  [SYS_kill]    = sys_kill,
-  [SYS_exec]    = sys_exec,
-  [SYS_fstat]   = sys_fstat,
-  [SYS_chdir]   = sys_chdir,
-  [SYS_dup]     = sys_dup,
-  [SYS_getpid]  = sys_getpid,
-  [SYS_sbrk]    = sys_sbrk,
-  [SYS_pause]   = sys_pause,
-  [SYS_uptime]  = sys_uptime,
-  [SYS_open]    = sys_open,
-  [SYS_write]   = sys_write,
-  [SYS_mknod]   = sys_mknod,
-  [SYS_unlink]  = sys_unlink,
-  [SYS_link]    = sys_link,
-  [SYS_mkdir]   = sys_mkdir,
-  [SYS_close]   = sys_close,
+  [SYS_fork]        = sys_fork,
+  [SYS_exit]        = sys_exit,
+  [SYS_wait]        = sys_wait,
+  [SYS_pipe]        = sys_pipe,
+  [SYS_read]        = sys_read,
+  [SYS_kill]        = sys_kill,
+  [SYS_exec]        = sys_exec,
+  [SYS_fstat]       = sys_fstat,
+  [SYS_chdir]       = sys_chdir,
+  [SYS_dup]         = sys_dup,
+  [SYS_getpid]      = sys_getpid,
+  [SYS_sbrk]        = sys_sbrk,
+  [SYS_pause]       = sys_pause,
+  [SYS_uptime]      = sys_uptime,
+  [SYS_open]        = sys_open,
+  [SYS_write]       = sys_write,
+  [SYS_mknod]       = sys_mknod,
+  [SYS_unlink]      = sys_unlink,
+  [SYS_link]        = sys_link,
+  [SYS_mkdir]       = sys_mkdir,
+  [SYS_close]       = sys_close,
   [SYS_sync]        = sys_sync,
   [SYS_hello]       = sys_hello,
   [SYS_sumados]     = sys_sumados,
@@ -156,6 +161,7 @@ static uint64 (*syscalls[])(void) = {
   // clang-format on
 };
 
+// Handle system calls.
 void
 syscall(void)
 {
@@ -163,31 +169,14 @@ syscall(void)
   struct proc *p = myproc();
 
   num = p->trapframe->a7;
+
   if (num > 0 && num < NELEM(syscalls) && syscalls[num]) {
-    // Use num to lookup the system call function for num, call it,
-    // and store its return value in p->trapframe->a0
     p->trapframe->a0 = syscalls[num]();
   } else {
-  
-uint64
-sys_dcachestat(void)
-{
-  uint64 user_addr;
-  struct dcache_stat stats;
-  struct proc *p = myproc();
+    printk("%d %s: unknown sys call %d\n",
+           p->pid, p->name, num);
 
-  argaddr(0, &user_addr);
-
-  dcache_get_stats(&stats);
-
-  if (copyout(p->pagetable, p->sz, user_addr,
-              (char *)&stats, sizeof(stats)) < 0)
-    return -1;
-
-  return 0;
-}
-
-    printk("%d %s: unknown sys call %d\n", p->pid, p->name, num);
     p->trapframe->a0 = -1;
   }
 }
+
