@@ -211,6 +211,11 @@ dcacheinit(void)
 
   dcache.hits = 0;
   dcache.misses = 0;
+  dcache.pos_hits = 0;
+  dcache.neg_hits = 0;
+  dcache.entries_scanned = 0;
+  dcache.invalidations = 0;
+  dcache.evictions = 0;
 
   for (int i = 0; i < DENTRY_HASH_SIZE; i++) {
     dcache.hash[i] = 0;
@@ -243,11 +248,16 @@ dcache_lookup(uint dev, uint parent_inum, char *name, int *result_type,
     if (offset)
       *offset = de->offset;
     dcache_lru_touch(de);
-    dcache.hits++;
-    release(&dcache.lock);
-    return DCACHE_HIT;
-  }
 
+dcache.hits++;
+
+if (de->result_type == DENTRY_POSITIVE)
+  dcache.pos_hits++;
+else if (de->result_type == DENTRY_NEGATIVE)
+  dcache.neg_hits++;
+
+release(&dcache.lock);
+return DCACHE_HIT;
   dcache.misses++;
   release(&dcache.lock);
   return DCACHE_MISS;
