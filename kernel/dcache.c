@@ -6,6 +6,7 @@
 #include "fs.h"
 #include "file.h"
 #include "defs.h"
+#define DCACHE_KERNEL
 #include "dcache.h"
 
 static struct dcache dcache;
