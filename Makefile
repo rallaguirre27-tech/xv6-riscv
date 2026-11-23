@@ -103,6 +103,8 @@ tags: $(OBJS)
 	etags kernel/*.S kernel/*.c
 
 ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
+# Habilitar estadisticas en las pruebas Dentry Cache
+$U/dcachetest.o $U/dcachebench.o: CFLAGS += -DHAVE_DCACHE_STATS
 
 _%: %.o $(ULIB) $U/user.ld
 	$(LD) $(LDFLAGS) -T $U/user.ld -o $@ $< $(ULIB)

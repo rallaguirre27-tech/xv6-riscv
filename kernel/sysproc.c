@@ -1,3 +1,4 @@
+
 #include "types.h"
 #include "riscv.h"
 #include "defs.h"
@@ -6,6 +7,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "vm.h"
+#include "dcache.h"
 
 uint64
 sys_exit(void)
@@ -52,9 +54,7 @@ sys_sbrk(void)
       return -1;
     }
   } else {
-    // Lazily allocate memory for this process: increase its memory
-    // size but don't allocate memory. If the processes uses the
-    // memory, vmfault() will allocate it.
+ 
     if (addr + n < addr)
       return -1;
     if (addr + n > TRAPFRAME)
@@ -98,8 +98,7 @@ sys_kill(void)
   return kkill(pid);
 }
 
-// return how many clock tick interrupts have occurred
-// since start.
+
 uint64
 sys_uptime(void)
 {
@@ -194,4 +193,26 @@ uint64
 sys_pc_get(void)
 {
   return pc_get();
+}
+
+// Obtener las estadisticas de Dentry Cache.
+uint64
+sys_dcachestat(void)
+{
+  uint64 user_addr;
+  struct dcache_stat stats;
+  struct proc *p = myproc();
+
+  // Obtener la direccion de memoria del usuario.
+  argaddr(0, &user_addr);
+
+  // Obtener una copia de los contadores del kernel.
+  dcache_get_stats(&stats);
+
+  // Copiar las estadisticas al espacio de usuario.
+  if (copyout(p->pagetable, p->sz, user_addr,
+              (char *)&stats, sizeof(stats)) < 0)
+    return -1;
+
+  return 0;
 }
