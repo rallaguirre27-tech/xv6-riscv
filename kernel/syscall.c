@@ -1,4 +1,5 @@
 #include "vm.h"
+#include "dcache.h"
 #include "types.h"
 #include "param.h"
 #include "memlayout.h"
@@ -166,6 +167,25 @@ syscall(void)
     // and store its return value in p->trapframe->a0
     p->trapframe->a0 = syscalls[num]();
   } else {
+  
+uint64
+sys_dcachestat(void)
+{
+  uint64 user_addr;
+  struct dcache_stat stats;
+  struct proc *p = myproc();
+
+  argaddr(0, &user_addr);
+
+  dcache_get_stats(&stats);
+
+  if (copyout(p->pagetable, p->sz, user_addr,
+              (char *)&stats, sizeof(stats)) < 0)
+    return -1;
+
+  return 0;
+}
+
     printk("%d %s: unknown sys call %d\n", p->pid, p->name, num);
     p->trapframe->a0 = -1;
   }
