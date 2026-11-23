@@ -208,3 +208,5 @@ void            dcacheinit(void);
 int             dcache_lookup(uint, uint, char*, int*, uint*, uint*);
 void            dcache_insert(uint, uint, char*, int, uint, uint);
 void            dcache_remove(uint, uint, char*);
+void            dcache_count_entry_scanned(void);
+void            dcache_get_stats(struct dcache_stat *);
