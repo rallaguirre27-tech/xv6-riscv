@@ -1,3 +1,4 @@
+
 #include "types.h"
 #include "param.h"
 #include "riscv.h"
@@ -6,6 +7,7 @@
 #include "fs.h"
 #include "file.h"
 #include "defs.h"
+
 #define DCACHE_KERNEL
 #include "dcache.h"
 
@@ -27,13 +29,16 @@ dcache_hash(uint dev, uint inum, char *name)
 }
 
 static int
-dcache_key_match(struct dentry *de, uint parent_dev, uint parent_inum,
-                 char *name)
+dcache_key_match(struct dentry *de, uint parent_dev,
+                 uint parent_inum, char *name)
 {
   if (!de || !de->valid)
     return 0;
-  if (de->parent_dev != parent_dev || de->parent_inum != parent_inum)
+
+  if (de->parent_dev != parent_dev ||
+      de->parent_inum != parent_inum)
     return 0;
+
   return strncmp(de->name, name, DIRSIZ) == 0;
 }
 
@@ -44,9 +49,9 @@ dcache_hash_lookup(uint parent_dev, uint parent_inum, char *name)
   struct dentry *de = dcache.hash[bucket];
 
   while (de != 0) {
-    if (dcache_key_match(de, parent_dev, parent_inum, name)) {
+    if (dcache_key_match(de, parent_dev, parent_inum, name))
       return de;
-    }
+
     de = de->hash_next;
   }
 
@@ -84,6 +89,7 @@ dcache_hash_remove(struct dentry *de)
       de->hash_next = 0;
       return;
     }
+
     curr = &(*curr)->hash_next;
   }
 }
@@ -138,6 +144,7 @@ dcache_lru_touch(struct dentry *entry)
   dcache_lru_insert_tail(entry);
 }
 
+// Expulsar la entrada menos recientemente utilizada.
 static struct dentry *
 dcache_lru_evict(void)
 {
@@ -161,29 +168,33 @@ static struct dentry *
 dcache_alloc_slot(void)
 {
   for (int i = 0; i < DENTRY_CACHE_SIZE; i++) {
-    if (!dcache.entries[i].valid) {
+    if (!dcache.entries[i].valid)
       return &dcache.entries[i];
-    }
   }
+
   return dcache_lru_evict();
 }
 
 static struct dentry *
-dcache_put_entry(uint parent_dev, uint parent_inum, char *name, int result_type,
-                 uint target_inum, uint offset)
+dcache_put_entry(uint parent_dev, uint parent_inum, char *name,
+                 int result_type, uint target_inum, uint offset)
 {
-  struct dentry *de = dcache_hash_lookup(parent_dev, parent_inum, name);
+  struct dentry *de =
+      dcache_hash_lookup(parent_dev, parent_inum, name);
 
   if (de != 0) {
     de->result_type = result_type;
     de->target_inum = target_inum;
     de->offset = offset;
     de->valid = 1;
+
     dcache_lru_touch(de);
+
     return de;
   }
 
   de = dcache_alloc_slot();
+
   if (!de)
     return 0;
 
@@ -201,6 +212,7 @@ dcache_put_entry(uint parent_dev, uint parent_inum, char *name, int result_type,
   return de;
 }
 
+// Inicializar Dentry Cache y sus estadisticas.
 void
 dcacheinit(void)
 {
@@ -209,6 +221,7 @@ dcacheinit(void)
   dcache.lru_head = 0;
   dcache.lru_tail = 0;
 
+  // Inicializar los siete contadores.
   dcache.hits = 0;
   dcache.misses = 0;
   dcache.pos_hits = 0;
@@ -229,9 +242,10 @@ dcacheinit(void)
   }
 }
 
+// Consultar una entrada de Dentry Cache.
 int
-dcache_lookup(uint dev, uint parent_inum, char *name, int *result_type,
-              uint *target_inum, uint *offset)
+dcache_lookup(uint dev, uint parent_inum, char *name,
+              int *result_type, uint *target_inum, uint *offset)
 {
   struct dentry *de;
 
@@ -253,8 +267,11 @@ dcache_lookup(uint dev, uint parent_inum, char *name, int *result_type,
       *offset = de->offset;
 
     dcache_lru_touch(de);
+
+    // Registrar el acierto general.
     dcache.hits++;
 
+    // Diferenciar aciertos positivos y negativos.
     if (de->result_type == DENTRY_POSITIVE)
       dcache.pos_hits++;
     else if (de->result_type == DENTRY_NEGATIVE)
@@ -264,22 +281,31 @@ dcache_lookup(uint dev, uint parent_inum, char *name, int *result_type,
     return DCACHE_HIT;
   }
 
+  // Registrar el fallo de busqueda.
   dcache.misses++;
 
   release(&dcache.lock);
+
   return DCACHE_MISS;
 }
-dcache_insert(uint dev, uint parent_inum, char *name, int result_type,
-              uint target_inum, uint offset)
+
+// Insertar una entrada positiva o negativa.
+void
+dcache_insert(uint dev, uint parent_inum, char *name,
+              int result_type, uint target_inum, uint offset)
 {
   if (!name)
     return;
 
   acquire(&dcache.lock);
-  dcache_put_entry(dev, parent_inum, name, result_type, target_inum, offset);
+
+  dcache_put_entry(dev, parent_inum, name, result_type,
+                   target_inum, offset);
+
   release(&dcache.lock);
 }
 
+// Eliminar e invalidar una entrada de la caché.
 void
 dcache_remove(uint dev, uint parent_inum, char *name)
 {
@@ -289,15 +315,18 @@ dcache_remove(uint dev, uint parent_inum, char *name)
     return;
 
   acquire(&dcache.lock);
-  de = dcache_hash_lookup(dev, parent_inum, name);
-  if (de != 0) {
-  dcache_hash_remove(de);
-  dcache_lru_remove(de);
-  de->valid = 0;
 
-  // Registrar la entrada invalidada.
-  dcache.invalidations++;
-}
+  de = dcache_hash_lookup(dev, parent_inum, name);
+
+  if (de != 0) {
+    dcache_hash_remove(de);
+    dcache_lru_remove(de);
+    de->valid = 0;
+
+    // Registrar la entrada invalidada.
+    dcache.invalidations++;
+  }
+
   release(&dcache.lock);
 }
 
@@ -306,11 +335,13 @@ void
 dcache_count_entry_scanned(void)
 {
   acquire(&dcache.lock);
+
   dcache.entries_scanned++;
+
   release(&dcache.lock);
 }
 
-// Obtener una copia de las estadisticas de Dentry Cache.
+// Obtener una copia consistente de las estadisticas.
 void
 dcache_get_stats(struct dcache_stat *stats)
 {
