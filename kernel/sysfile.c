@@ -15,6 +15,7 @@
 #include "sleeplock.h"
 #include "file.h"
 #include "fcntl.h"
+#include "dcache.h"
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -235,6 +236,9 @@ sys_unlink(void)
   memset(&de, 0, sizeof(de));
   if (writei(dp, 0, (uint64)&de, off, sizeof(de)) != sizeof(de))
     panic("unlink: writei");
+
+  dcache_remove(dp->dev, dp->inum, name);
+
   if (ip->type == T_DIR) {
     dp->nlink--;
     iupdate(dp);
