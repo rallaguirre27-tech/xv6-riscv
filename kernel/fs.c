@@ -601,6 +601,7 @@ dirlookup(struct inode *dp, char *name, uint *poff)
   for (off = 0; off < dp->size; off += sizeof(de)) {
     if (readi(dp, 0, (uint64)&de, off, sizeof(de)) != sizeof(de))
       panic("dirlookup read");
+      dcache_count_entry_scanned();
     if (de.inum == 0)
       continue;
     if (namecmp(name, de.name) == 0) {
