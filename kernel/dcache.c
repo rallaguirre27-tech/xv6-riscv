@@ -295,3 +295,33 @@ dcache_remove(uint dev, uint parent_inum, char *name)
 }
   release(&dcache.lock);
 }
+
+// Registrar una entrada examinada durante dirlookup().
+void
+dcache_count_entry_scanned(void)
+{
+  acquire(&dcache.lock);
+  dcache.entries_scanned++;
+  release(&dcache.lock);
+}
+
+// Obtener una copia de las estadisticas de Dentry Cache.
+void
+dcache_get_stats(struct dcache_stat *stats)
+{
+  if (stats == 0)
+    return;
+
+  acquire(&dcache.lock);
+
+  stats->hits = dcache.hits;
+  stats->misses = dcache.misses;
+  stats->pos_hits = dcache.pos_hits;
+  stats->neg_hits = dcache.neg_hits;
+  stats->entries_scanned = dcache.entries_scanned;
+  stats->invalidations = dcache.invalidations;
+  stats->evictions = dcache.evictions;
+
+  release(&dcache.lock);
+}
+
