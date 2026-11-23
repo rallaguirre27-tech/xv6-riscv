@@ -724,8 +724,8 @@ namex(char *path, int nameiparent, char *name)
     }
 
     // Primero consultar el Dentry Cache.
-    if (dcache_lookup(ip->dev, ip->inum, name,
-                      &result_type, &target_inum, &offset) == DCACHE_HIT) {
+    if (dcache_lookup(ip->dev, ip->inum, name, &result_type, &target_inum,
+                      &offset) == DCACHE_HIT) {
 
       // Entrada negativa: el nombre no existe.
       if (result_type == DENTRY_NEGATIVE) {
@@ -734,12 +734,16 @@ namex(char *path, int nameiparent, char *name)
       }
 
       // Entrada positiva: recuperar el inodo.
-      if (result_type == DENTRY_POSITIVE) {
-        next = iget(ip->dev, target_inum);
-        iunlockput(ip);
-        ip = next;
-        continue;
-      }
+if (result_type == DENTRY_POSITIVE) {
+  next = iget(ip->dev, target_inum);
+  if (next == 0) {
+    iunlockput(ip);
+    return 0;
+  }
+  iunlockput(ip);
+  ip = next;
+  continue;
+}
     }
 
     // Si no está en caché, consultar el directorio.
@@ -747,16 +751,14 @@ namex(char *path, int nameiparent, char *name)
 
     if (next == 0) {
       // Guardar resultado negativo.
-      dcache_insert(ip->dev, ip->inum, name,
-                    DENTRY_NEGATIVE, 0, 0);
+      dcache_insert(ip->dev, ip->inum, name, DENTRY_NEGATIVE, 0, 0);
 
       iunlockput(ip);
       return 0;
     }
 
     // Guardar resultado positivo.
-    dcache_insert(ip->dev, ip->inum, name,
-                  DENTRY_POSITIVE, next->inum, offset);
+    dcache_insert(ip->dev, ip->inum, name, DENTRY_POSITIVE, next->inum, offset);
 
     iunlockput(ip);
     ip = next;
@@ -769,7 +771,6 @@ namex(char *path, int nameiparent, char *name)
 
   return ip;
 }
-
 
 struct inode *
 namei(char *path)
