@@ -133,7 +133,7 @@ Tiempo en ticks (mediana de 3 corridas; menor es mejor). Aceleración = original
 - Las búsquedas dejan de depender del tamaño del directorio; crear/borrar mejora poco porque son escrituras.
 - Los tiempos varían entre sesiones de la máquina virtual (hasta casi 2×); por eso se usan 3 corridas y la mediana, y las dos versiones deben compararse en la misma sesión.
 
-## Documentación y evidencias
+## Documentación
 
 - Informe técnico (parte del integrante 5): [`docs/Informe_integrante_5_actualizado.docx`](docs/Informe_integrante_5_actualizado.docx)
 - Presentación: [`docs/Presentacion_Integrante_5.pptx`](docs/Presentacion_Integrante_5.pptx)
