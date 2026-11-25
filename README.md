@@ -135,8 +135,8 @@ Tiempo en ticks (mediana de 3 corridas; menor es mejor). Aceleración = original
 
 ## Documentación
 
-- Documento técnico (PDF): [`DocumentoTecnico.pdf`](documento_TrabajoFinal/DocumentoTecnico.pdf?raw=true)
-- Presentación final: [`ProyectoFinal.pptx`](documento_TrabajoFinal/ProyectoFinal.pptx?raw=true)
+- Documento técnico (PDF): [`DocumentoTecnico.pdf`](docs/DocumentoTecnico.pdf?raw=true)
+- Presentación final: [`ProyectoFinal.pptx`](docs/ProyectoFinal.pptx?raw=true)
 
 ## Autoría
 
