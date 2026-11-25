@@ -135,8 +135,8 @@ Tiempo en ticks (mediana de 3 corridas; menor es mejor). Aceleración = original
 
 ## Documentación
 
-- Informe técnico (parte del integrante 5): [`docs/Informe_integrante_5_actualizado.docx`](docs/Informe_integrante_5_actualizado.docx)
-- Presentación: [`docs/Presentacion_Integrante_5.pptx`](docs/Presentacion_Integrante_5.pptx)
+- Documento técnico (PDF): [`DocumentoTecnico.pdf`](documento_TrabajoFinal/DocumentoTecnico.pdf?raw=true)
+- Presentación final: [`ProyectoFinal.pptx`](documento_TrabajoFinal/ProyectoFinal.pptx?raw=true)
 
 ## Autoría
 
